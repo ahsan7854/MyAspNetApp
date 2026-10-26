@@ -1,0 +1,37 @@
+MyAspNetApp/
+├── src/
+│   ├── MyApp.Web/
+│   │   ├── Controllers/
+│   │   ├── Models/
+│   │   ├── Views/
+│   │   ├── wwwroot/
+│   │   │   ├── css/
+│   │   │   └── js/
+│   │   ├── appsettings.json
+│   │   ├── appsettings.Development.json
+│   │   ├── Program.cs
+│   │   └── MyApp.Web.csproj
+│   ├── MyApp.Application/
+│   │   ├── Features/
+│   │   ├── Services/
+│   │   ├── Dtos/
+│   │   └── MyApp.Application.csproj
+│   ├── MyApp.Domain/
+│   │   ├── Entities/
+│   │   ├── Interfaces/
+│   │   ├── ValueObjects/
+│   │   └── MyApp.Domain.csproj
+│   ├── MyApp.Infrastructure/
+│   │   ├── Data/
+│   │   ├── Repositories/
+│   │   ├── Services/
+│   │   └── MyApp.Infrastructure.csproj
+│   ├── MyApp.Shared/
+│   │   └── Common/
+│   └── MyApp.sln
+├── tests/
+│   └── MyApp.UnitTests/
+├── docs/
+├── scripts/
+├── README.md
+└── .gitignore

@@ -1,0 +1,49 @@
+@model QuestionnaireSubmissionDetailsViewModel
+@{
+    ViewData["Title"] = "Saved questionnaire";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Saved securely to your account</p>
+        <h1>Student Visa Questionnaire</h1>
+        <p>
+            Submitted (UTC):
+            <time datetime="@Model.CreatedAtUtc.ToString("O")">@Model.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</time>
+            · Version @Model.QuestionnaireVersion
+        </p>
+    </div>
+    <a class="button button-secondary" asp-action="Index">Back to my questionnaires</a>
+</div>
+
+@if (Model.Sections.Count == 0)
+{
+    <section class="panel empty-state">
+        <h2>No answers recorded</h2>
+        <p>This submission does not contain any questionnaire answers.</p>
+    </section>
+}
+else
+{
+    @foreach (var entry in Model.Sections)
+    {
+        <section class="form-section" aria-labelledby="saved-section-@entry.Number-@entry.RecordNumber">
+            <h2 id="saved-section-@entry.Number-@entry.RecordNumber">
+                @entry.Number. @entry.Title@(entry.RecordNumber == 1 ? string.Empty : $" (additional record {entry.RecordNumber})")
+            </h2>
+            <div class="table-scroll">
+                <table class="form-table">
+                    <tbody>
+                        @foreach (var answer in entry.Answers)
+                        {
+                            <tr>
+                                <th scope="row">@answer.Label</th>
+                                <td class="saved-answer">@answer.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+}

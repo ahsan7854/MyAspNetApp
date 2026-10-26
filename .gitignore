@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+.vs/
+src/MyApp.Web/App_Data/
+.env
+.env.*
+!.env.example
+*.user
+*.suo
+*.pfx
+*.pem
+*.key

@@ -1,0 +1,102 @@
+@model FormSubmissionInputModel
+@{
+    ViewData["Title"] = "Student Visa Questionnaire";
+}
+
+<section class="form-intro">
+    <p class="eyebrow">Secure submission</p>
+    <h1>Student Visa Questionnaire</h1>
+    <p>Complete the applicable fields and select Yes or No where shown. Use the add-record buttons to include additional applicants, children, addresses, or other records. Your answers are saved securely to your account.</p>
+</section>
+
+<form asp-action="Create" method="post" class="submission-form">
+    <div asp-validation-summary="All" class="validation-summary"></div>
+
+    @foreach (var formSection in FormQuestionnaire.Sections)
+    {
+        var recordNumbers = new List<int> { 1 };
+        if (formSection.Repeatable)
+        {
+            for (var recordNumber = 2; recordNumber <= 20; recordNumber++)
+            {
+                var suffix = $"__{recordNumber}";
+                if (formSection.Questions.Any(question => Model.Answers.ContainsKey(question.Key + suffix)))
+                {
+                    recordNumbers.Add(recordNumber);
+                }
+            }
+        }
+
+        @foreach (var recordNumber in recordNumbers)
+        {
+            var sectionId = $"section-{formSection.Number}-record-{recordNumber}";
+            var headingId = $"section-heading-{formSection.Number}-record-{recordNumber}";
+            var recordSuffix = recordNumber == 1 ? string.Empty : $"__{recordNumber}";
+            <section class="form-section questionnaire-section"
+                     id="@sectionId"
+                     aria-labelledby="@headingId"
+                     data-section-key="@formSection.Number"
+                     data-section-title="@formSection.Title"
+                     data-repeatable="@formSection.Repeatable.ToString().ToLowerInvariant()">
+                <div class="questionnaire-section-heading">
+                    <h2 id="@headingId">@formSection.Number. @formSection.Title@(recordNumber == 1 ? string.Empty : $" (additional record {recordNumber})")</h2>
+                    @if (formSection.Repeatable)
+                    {
+                        <button class="button button-secondary repeat-record" type="button">Add another record</button>
+                    }
+                </div>
+                <div class="table-scroll">
+                    <table class="form-table">
+                        <tbody>
+                            @foreach (var question in formSection.Questions)
+                            {
+                                var answerKey = question.Key + recordSuffix;
+                                var fieldId = $"answer-{answerKey}";
+                                var value = Model.Answers.TryGetValue(answerKey, out var answer) ? answer : string.Empty;
+                                var declaration = question.Key == "declarationConfirmed";
+                                <tr>
+                                    <th scope="row"><label for="@fieldId">@question.Label</label></th>
+                                    <td>
+                                        @if (question.Type == FormQuestionType.YesNo)
+                                        {
+                                            <select id="@fieldId" name="Answers[@answerKey]" required="@(declaration ? "required" : null)">
+                                                <option value="">Choose Yes or No</option>
+                                                <option value="Yes" selected="@(value == "Yes" ? "selected" : null)">Yes</option>
+                                                <option value="No" selected="@(value == "No" ? "selected" : null)">No</option>
+                                            </select>
+                                        }
+                                        else if (question.Type == FormQuestionType.LongText)
+                                        {
+                                            <textarea id="@fieldId" name="Answers[@answerKey]" rows="3" maxlength="4000">@value</textarea>
+                                        }
+                                        else
+                                        {
+                                            var inputType = question.Type switch
+                                            {
+                                                FormQuestionType.Date => "date",
+                                                FormQuestionType.Number => "number",
+                                                FormQuestionType.Email => "email",
+                                                _ => "text"
+                                            };
+                                            <input id="@fieldId" name="Answers[@answerKey]" type="@inputType" value="@value" maxlength="4000" />
+                                        }
+                                        @Html.ValidationMessage($"Answers[{answerKey}]", null, new { @class = "field-error" })
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        }
+    }
+
+    <div class="form-actions">
+        <button class="button" type="submit">Submit questionnaire</button>
+        <a class="button button-secondary" asp-action="Index">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/questionnaire.js" asp-append-version="true"></script>
+}

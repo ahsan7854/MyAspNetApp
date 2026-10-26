@@ -1,0 +1,56 @@
+@model IReadOnlyList<QuestionnaireSubmission>
+@{
+    ViewData["Title"] = "My forms";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Your account</p>
+        <h1>My questionnaires</h1>
+        <p>Only you can see the questionnaires listed here.</p>
+    </div>
+    <a class="button" asp-action="Create">Start a new questionnaire</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <p class="notice" role="status">@successMessage</p>
+}
+
+@if (Model.Count == 0)
+{
+    <section class="panel empty-state">
+        <h2>No questionnaires yet</h2>
+        <p>Start a new student visa questionnaire to save your information.</p>
+        <a asp-action="Create">Complete the questionnaire</a>
+    </section>
+}
+else
+{
+    <div class="table-scroll">
+        <table class="submission-list">
+            <caption>Your saved questionnaires</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Submitted (UTC)</th>
+                    <th scope="col">Questionnaire</th>
+                    <th scope="col">Version</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Answers</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var submission in Model)
+                {
+                    <tr>
+                        <td><time datetime="@submission.CreatedAtUtc.ToString("O")">@submission.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</time></td>
+                        <td>Student Visa Questionnaire</td>
+                        <td>@submission.QuestionnaireVersion</td>
+                        <td>Submitted</td>
+                        <td><a asp-action="Details" asp-route-id="@submission.Id">View answers</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

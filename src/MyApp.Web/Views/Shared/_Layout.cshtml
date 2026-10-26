@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - MyApp</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" asp-controller="Home" asp-action="Index">MyApp</a>
+        <nav aria-label="Main navigation">
+            <details class="visa-dropdown">
+                <summary>Visa types</summary>
+                <div class="visa-dropdown-panel">
+                    <p class="visa-dropdown-note">Questionnaire templates for these visa types are coming soon.</p>
+                    <div class="visa-type-group">
+                        <h2>Visitor</h2>
+                        <ul>
+                            <li>Visitor visa (subclass 600)</li>
+                            <li>Electronic Travel Authority (subclass 601)</li>
+                            <li>eVisitor (subclass 651)</li>
+                            <li>Transit visa (subclass 771)</li>
+                            <li>Medical Treatment visa (subclass 602)</li>
+                        </ul>
+                    </div>
+                    <div class="visa-type-group">
+                        <h2>Study and training</h2>
+                        <ul>
+                            <li>Student visa (subclass 500)</li>
+                            <li>Student Guardian visa (subclass 590)</li>
+                            <li>Training visa (subclass 407)</li>
+                        </ul>
+                    </div>
+                    <div class="visa-type-group">
+                        <h2>Work and skilled migration</h2>
+                        <ul>
+                            <li>Skills in Demand visa (subclass 482)</li>
+                            <li>Employer Nomination Scheme visa (subclass 186)</li>
+                            <li>Skilled Employer Sponsored Regional visa (subclass 494)</li>
+                            <li>Skilled Independent visa (subclass 189)</li>
+                            <li>Skilled Nominated visa (subclass 190)</li>
+                            <li>Skilled Work Regional (Provisional) visa (subclass 491)</li>
+                            <li>Permanent Residence (Skilled Regional) visa (subclass 191)</li>
+                            <li>Temporary Graduate visa (subclass 485)</li>
+                            <li>Temporary Work (Short Stay Specialist) visa (subclass 400)</li>
+                            <li>Temporary Activity visa (subclass 408)</li>
+                            <li>Temporary Work (International Relations) visa (subclass 403)</li>
+                            <li>Working Holiday visa (subclass 417)</li>
+                            <li>Work and Holiday visa (subclass 462)</li>
+                        </ul>
+                    </div>
+                    <div class="visa-type-group">
+                        <h2>Family and partner</h2>
+                        <ul>
+                            <li>Partner visa (subclasses 309/100 and 820/801)</li>
+                            <li>Prospective Marriage visa (subclass 300)</li>
+                            <li>Child visa (subclasses 101 and 802)</li>
+                            <li>Adoption visa (subclass 102)</li>
+                            <li>Parent visa (subclass 103)</li>
+                            <li>Contributory Parent visa (subclasses 143 and 173)</li>
+                            <li>Aged Parent visa (subclass 804)</li>
+                            <li>Contributory Aged Parent visa (subclasses 864 and 884)</li>
+                            <li>Remaining Relative visa (subclass 115)</li>
+                            <li>Carer visa (subclass 116)</li>
+                        </ul>
+                    </div>
+                    <div class="visa-type-group">
+                        <h2>Humanitarian</h2>
+                        <ul>
+                            <li>Refugee visa (subclass 200)</li>
+                            <li>In-country Special Humanitarian visa (subclass 201)</li>
+                            <li>Global Special Humanitarian visa (subclass 202)</li>
+                            <li>Emergency Rescue visa (subclass 203)</li>
+                            <li>Woman at Risk visa (subclass 204)</li>
+                            <li>Protection visa (subclass 866)</li>
+                            <li>Temporary Protection visa (subclass 785)</li>
+                            <li>Safe Haven Enterprise visa (subclass 790)</li>
+                        </ul>
+                    </div>
+                    <div class="visa-type-group">
+                        <h2>Other visa types</h2>
+                        <ul>
+                            <li>Bridging visas (subclasses A, B, C, and E)</li>
+                            <li>Special Category visa (subclass 444)</li>
+                            <li>Maritime Crew visa (subclass 988)</li>
+                        </ul>
+                    </div>
+                    <a class="visa-official-link"
+                       href="https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing"
+                       target="_blank"
+                       rel="noopener noreferrer">See the official Australian visa listing</a>
+                </div>
+            </details>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="Form" asp-action="Index">My questionnaires</a>
+                <span class="account-name">@User.Identity.Name</span>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="nav-form">
+                    <button class="link-button" type="submit">Sign out</button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login">Sign in</a>
+                <a asp-controller="Account" asp-action="Register">Create account</a>
+            }
+        </nav>
+    </header>
+    <main class="container">
+        @RenderBody()
+    </main>
+    <footer class="site-footer">Secure questionnaire submissions</footer>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
