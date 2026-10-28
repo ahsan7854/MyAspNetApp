@@ -10,6 +10,7 @@ public sealed record QuestionnaireSectionViewModel(
 
 public sealed record QuestionnaireSubmissionDetailsViewModel(
     int Id,
+    string QuestionnaireTitle,
     int QuestionnaireVersion,
     DateTime CreatedAtUtc,
     IReadOnlyList<QuestionnaireSectionViewModel> Sections);

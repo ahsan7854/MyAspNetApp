@@ -371,6 +371,86 @@ thead th {
     margin-bottom: 2rem;
 }
 
+.questionnaire-tabs {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+    padding: 0.25rem 0 0.75rem;
+    border-bottom: 1px solid #dce6e0;
+    scrollbar-color: #9ab8aa #edf4f0;
+}
+
+.questionnaire-tab {
+    display: inline-flex;
+    min-height: 42px;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: #31584d;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.questionnaire-tab:hover {
+    background: #edf4f0;
+}
+
+.questionnaire-tab.is-active {
+    border-color: #176b51;
+    background: #e8f7ef;
+    color: #10543f;
+    font-weight: 700;
+}
+
+.questionnaire-tab-number {
+    display: inline-grid;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 50%;
+    background: #edf4f0;
+    font-size: 0.8rem;
+}
+
+.questionnaire-tab.is-active .questionnaire-tab-number {
+    background: #176b51;
+    color: #fff;
+}
+
+.questionnaire-tab-panel[hidden] {
+    display: none;
+}
+
+.questionnaire-tab-panel > .form-section:first-child {
+    margin-bottom: 1.25rem;
+}
+
+.questionnaire-tab-panel > .form-section h2 {
+    margin-bottom: 0.4rem;
+}
+
+.questionnaire-section-heading h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.questionnaire-section-heading .repeat-record {
+    margin-bottom: 0.75rem;
+}
+
+.questionnaire-actions {
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+
 .form-intro h1 {
     font-size: clamp(1.8rem, 4vw, 2.5rem);
 }
@@ -405,6 +485,10 @@ thead th {
 .form-table th {
     width: 31%;
     background: #f8faf9;
+}
+
+.particulars-table th {
+    width: 31%;
 }
 
 .form-table input,

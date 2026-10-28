@@ -30,16 +30,23 @@ with uppercase, lowercase, a number, and a symbol.
 
 ## Submission workflow
 
-1. Open the form link. The form endpoints require an authenticated account and
-   redirect signed-out visitors to sign in.
-2. Register or sign in. Account passwords are managed and hashed by ASP.NET
-   Core Identity.
-3. Complete the 16 sections of the Student Visa Questionnaire, add records
-   where needed, and confirm the declaration.
+1. Register or sign in. Account passwords are managed and hashed by ASP.NET
+   Core Identity. After successful authentication, the app opens the business
+   particulars page.
+2. Review the Anchor Migration and Education Consultants particulars and select
+   **Continue to questionnaire**, or select a supported visa questionnaire from
+   the **Visa types** menu.
+3. Complete the sections of the selected questionnaire using the tabs. The
+   Student Visa, Graduate (Subclass 485), Aged/Remaining Relative, Child Visa
+   (Over 18 and Under 18), Parent (Permanent), and Partner Visa questionnaires
+   are available.
+   Save progress at any time and continue later from **My questionnaires**.
+   Add records where needed, then confirm the declaration on the final tab and
+   submit the questionnaire.
 4. The application validates the answers on the server and associates the
-   saved questionnaire with the signed-in account.
-5. The **My questionnaires** page lists only that user's submissions and links
-   to the saved answers.
+   saved draft or submitted questionnaire with the signed-in account.
+5. The **My questionnaires** page lists only that user's drafts and submissions,
+   with links to resume drafts or review submitted answers.
 
 ASP.NET Core Identity and questionnaire submissions are stored in the SQLite
 database at `src\MyApp.Web\App_Data\myapp.db`, in the

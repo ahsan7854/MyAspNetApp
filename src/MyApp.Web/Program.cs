@@ -66,6 +66,8 @@ await using (var scope = app.Services.CreateAsyncScope())
             "AnswersProtected" TEXT NOT NULL,
             "QuestionnaireVersion" INTEGER NOT NULL,
             "CreatedAtUtc" TEXT NOT NULL,
+            "QuestionnaireType" TEXT NOT NULL DEFAULT 'student500',
+            "IsDraft" INTEGER NOT NULL DEFAULT 0,
             CONSTRAINT "FK_QuestionnaireSubmissions_AspNetUsers_UserId"
                 FOREIGN KEY ("UserId") REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
         );
@@ -88,6 +90,20 @@ await using (var scope = app.Services.CreateAsyncScope())
         await database.Database.ExecuteSqlRawAsync("""
             ALTER TABLE "QuestionnaireSubmissions"
             RENAME COLUMN "AnswersJson" TO "AnswersProtected";
+            """);
+    }
+    if (!questionnaireColumns.Contains("IsDraft"))
+    {
+        await database.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE "QuestionnaireSubmissions"
+            ADD COLUMN "IsDraft" INTEGER NOT NULL DEFAULT 0;
+            """);
+    }
+    if (!questionnaireColumns.Contains("QuestionnaireType"))
+    {
+        await database.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE "QuestionnaireSubmissions"
+            ADD COLUMN "QuestionnaireType" TEXT NOT NULL DEFAULT 'student500';
             """);
     }
     await database.Database.ExecuteSqlRawAsync("""

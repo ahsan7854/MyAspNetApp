@@ -9,7 +9,7 @@
         <h1>My questionnaires</h1>
         <p>Only you can see the questionnaires listed here.</p>
     </div>
-    <a class="button" asp-action="Create">Start a new questionnaire</a>
+    <a class="button" asp-action="Create" asp-route-newDraft="true">Start a new questionnaire</a>
 </div>
 
 @if (TempData["SuccessMessage"] is string successMessage)
@@ -21,7 +21,7 @@
 {
     <section class="panel empty-state">
         <h2>No questionnaires yet</h2>
-        <p>Start a new student visa questionnaire to save your information.</p>
+        <p>Start a visa questionnaire to save your information.</p>
         <a asp-action="Create">Complete the questionnaire</a>
     </section>
 }
@@ -32,7 +32,7 @@ else
             <caption>Your saved questionnaires</caption>
             <thead>
                 <tr>
-                    <th scope="col">Submitted (UTC)</th>
+                    <th scope="col">Started / submitted (UTC)</th>
                     <th scope="col">Questionnaire</th>
                     <th scope="col">Version</th>
                     <th scope="col">Status</th>
@@ -44,10 +44,19 @@ else
                 {
                     <tr>
                         <td><time datetime="@submission.CreatedAtUtc.ToString("O")">@submission.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</time></td>
-                        <td>Student Visa Questionnaire</td>
+                        <td>@(QuestionnaireCatalog.TryGet(submission.QuestionnaireType, out var questionnaire) ? questionnaire.Title : submission.QuestionnaireType)</td>
                         <td>@submission.QuestionnaireVersion</td>
-                        <td>Submitted</td>
-                        <td><a asp-action="Details" asp-route-id="@submission.Id">View answers</a></td>
+                        <td>@(submission.IsDraft ? "Draft" : "Submitted")</td>
+                        <td>
+                            @if (submission.IsDraft)
+                            {
+                                <a asp-action="Create" asp-route-draftId="@submission.Id">Continue draft</a>
+                            }
+                            else
+                            {
+                                <a asp-action="Details" asp-route-id="@submission.Id">View answers</a>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>

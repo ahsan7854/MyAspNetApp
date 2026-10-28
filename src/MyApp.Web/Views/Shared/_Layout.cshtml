@@ -13,83 +13,52 @@
             <details class="visa-dropdown">
                 <summary>Visa types</summary>
                 <div class="visa-dropdown-panel">
-                    <p class="visa-dropdown-note">Questionnaire templates for these visa types are coming soon.</p>
+                    <p class="visa-dropdown-note">Our current visa questionnaire services.</p>
                     <div class="visa-type-group">
-                        <h2>Visitor</h2>
+                        <h2>Family</h2>
                         <ul>
-                            <li>Visitor visa (subclass 600)</li>
-                            <li>Electronic Travel Authority (subclass 601)</li>
-                            <li>eVisitor (subclass 651)</li>
-                            <li>Transit visa (subclass 771)</li>
-                            <li>Medical Treatment visa (subclass 602)</li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="agedRemainingRelative" asp-route-newDraft="true">Aged/Remaining Relative Visas Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="childOver18" asp-route-newDraft="true">Child Visa Questionnaire (Over 18)</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="childUnder18" asp-route-newDraft="true">Child Visa Questionnaire (Under 18)</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="parentPermanent" asp-route-newDraft="true">Parent (Permanent) Visa Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="partnerVisa" asp-route-newDraft="true">Partner Visas Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="partnerVisaNoForm80" asp-route-newDraft="true">Partner Visas Questionnaire - No Form 80</a></li>
                         </ul>
                     </div>
                     <div class="visa-type-group">
-                        <h2>Study and training</h2>
+                        <h2>Working and Skilled</h2>
                         <ul>
-                            <li>Student visa (subclass 500)</li>
-                            <li>Student Guardian visa (subclass 590)</li>
-                            <li>Training visa (subclass 407)</li>
+                            <li>Business Visas Questionnaire</li>
+                            <li>ENS/RSMS Visa Questionnaire</li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="graduate485" asp-route-newDraft="true">Graduate (485) Visa Questionnaire</a></li>
+                            <li>Graduate (485) Visa Questionnaire - No Form 80</li>
+                            <li>Skilled (189/190) Visas Questionnaire</li>
+                            <li>Temporary Activity (408) Visa Questionnaire</li>
+                            <li>Temporary Work (400) Visa Questionnaire</li>
+                            <li>Skills in Demand (482) Questionnaire</li>
+                            <li>Skills in Demand (482) Subsequent Entrant Questionnaire</li>
+                            <li>Talent (124/858) Visa Questionnaire</li>
+                            <li>Talent (124/858) Visa Questionnaire - No Form 80</li>
                         </ul>
                     </div>
                     <div class="visa-type-group">
-                        <h2>Work and skilled migration</h2>
+                        <h2>Student</h2>
                         <ul>
-                            <li>Skills in Demand visa (subclass 482)</li>
-                            <li>Employer Nomination Scheme visa (subclass 186)</li>
-                            <li>Skilled Employer Sponsored Regional visa (subclass 494)</li>
-                            <li>Skilled Independent visa (subclass 189)</li>
-                            <li>Skilled Nominated visa (subclass 190)</li>
-                            <li>Skilled Work Regional (Provisional) visa (subclass 491)</li>
-                            <li>Permanent Residence (Skilled Regional) visa (subclass 191)</li>
-                            <li>Temporary Graduate visa (subclass 485)</li>
-                            <li>Temporary Work (Short Stay Specialist) visa (subclass 400)</li>
-                            <li>Temporary Activity visa (subclass 408)</li>
-                            <li>Temporary Work (International Relations) visa (subclass 403)</li>
-                            <li>Working Holiday visa (subclass 417)</li>
-                            <li>Work and Holiday visa (subclass 462)</li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="student500" asp-route-newDraft="true">Student Visa Questionnaire</a></li>
                         </ul>
                     </div>
                     <div class="visa-type-group">
-                        <h2>Family and partner</h2>
+                        <h2>Visitors</h2>
                         <ul>
-                            <li>Partner visa (subclasses 309/100 and 820/801)</li>
-                            <li>Prospective Marriage visa (subclass 300)</li>
-                            <li>Child visa (subclasses 101 and 802)</li>
-                            <li>Adoption visa (subclass 102)</li>
-                            <li>Parent visa (subclass 103)</li>
-                            <li>Contributory Parent visa (subclasses 143 and 173)</li>
-                            <li>Aged Parent visa (subclass 804)</li>
-                            <li>Contributory Aged Parent visa (subclasses 864 and 884)</li>
-                            <li>Remaining Relative visa (subclass 115)</li>
-                            <li>Carer visa (subclass 116)</li>
+                            <li>Visitor Visa Questionnaire</li>
                         </ul>
                     </div>
                     <div class="visa-type-group">
-                        <h2>Humanitarian</h2>
+                        <h2>Form 80</h2>
                         <ul>
-                            <li>Refugee visa (subclass 200)</li>
-                            <li>In-country Special Humanitarian visa (subclass 201)</li>
-                            <li>Global Special Humanitarian visa (subclass 202)</li>
-                            <li>Emergency Rescue visa (subclass 203)</li>
-                            <li>Woman at Risk visa (subclass 204)</li>
-                            <li>Protection visa (subclass 866)</li>
-                            <li>Temporary Protection visa (subclass 785)</li>
-                            <li>Safe Haven Enterprise visa (subclass 790)</li>
+                            <li>Form 80 Questionnaire for Over 16 Applicants</li>
                         </ul>
                     </div>
-                    <div class="visa-type-group">
-                        <h2>Other visa types</h2>
-                        <ul>
-                            <li>Bridging visas (subclasses A, B, C, and E)</li>
-                            <li>Special Category visa (subclass 444)</li>
-                            <li>Maritime Crew visa (subclass 988)</li>
-                        </ul>
-                    </div>
-                    <a class="visa-official-link"
-                       href="https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing"
-                       target="_blank"
-                       rel="noopener noreferrer">See the official Australian visa listing</a>
                 </div>
             </details>
             @if (User.Identity?.IsAuthenticated == true)

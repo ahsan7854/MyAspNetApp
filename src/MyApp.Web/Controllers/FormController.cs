@@ -25,10 +25,9 @@ public sealed class FormController(
     private static readonly Regex AnswerKeyPattern = new(
         "^(?<key>[A-Za-z][A-Za-z0-9]*)(?:__(?<repeat>[2-9]|1[0-9]|20))?$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
-    private static readonly Dictionary<string, (FormQuestionnaireSection Section, FormQuestion Question)> QuestionsByKey =
-        FormQuestionnaire.Sections
-            .SelectMany(section => section.Questions.Select(question => (section, question)))
-            .ToDictionary(item => item.question.Key, item => (item.section, item.question), StringComparer.Ordinal);
+
+    [HttpGet]
+    public IActionResult Particulars() => View();
 
     public async Task<IActionResult> Index()
     {
@@ -38,6 +37,56 @@ public sealed class FormController(
             .OrderByDescending(submission => submission.CreatedAtUtc)
             .ToListAsync();
         return View(submissions);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Create(
+        int? draftId,
+        int section = 1,
+        bool newDraft = false,
+        string? questionnaireType = null)
+    {
+        var userId = userManager.GetUserId(User);
+        var selectedType = questionnaireType ?? QuestionnaireCatalog.StudentVisaType;
+        if (!QuestionnaireCatalog.TryGet(selectedType, out var questionnaire))
+        {
+            return BadRequest("The selected questionnaire is not available.");
+        }
+
+        QuestionnaireSubmission? draft = null;
+        if (draftId.HasValue)
+        {
+            draft = await database.QuestionnaireSubmissions
+                .SingleOrDefaultAsync(item =>
+                    item.Id == draftId.Value && item.UserId == userId && item.IsDraft);
+            if (draft is null)
+            {
+                return NotFound();
+            }
+
+            if (!QuestionnaireCatalog.TryGet(draft.QuestionnaireType, out questionnaire))
+            {
+                throw new InvalidDataException("The saved questionnaire type is not supported.");
+            }
+        }
+        else if (!newDraft)
+        {
+            draft = await database.QuestionnaireSubmissions
+                .Where(item => item.UserId == userId &&
+                    item.IsDraft &&
+                    item.QuestionnaireType == questionnaire.Type)
+                .OrderByDescending(item => item.CreatedAtUtc)
+                .FirstOrDefaultAsync();
+        }
+
+        var answers = draft is null
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            : JsonSerializer.Deserialize<Dictionary<string, string>>(
+                answersProtector.Unprotect(draft.AnswersProtected))
+              ?? throw new InvalidDataException("The saved questionnaire answers are invalid.");
+
+        return View("Create", CreateInputModel(
+            questionnaire, draft?.Id, section, answers));
     }
 
     [HttpGet]
@@ -51,11 +100,16 @@ public sealed class FormController(
             return NotFound();
         }
 
+        if (!QuestionnaireCatalog.TryGet(submission.QuestionnaireType, out var questionnaire))
+        {
+            throw new InvalidDataException("The saved questionnaire type is not supported.");
+        }
+
         var answers = JsonSerializer.Deserialize<Dictionary<string, string>>(
             answersProtector.Unprotect(submission.AnswersProtected))
             ?? throw new InvalidDataException("The saved questionnaire answers are invalid.");
 
-        var sections = FormQuestionnaire.Sections
+        var sections = questionnaire.Sections
             .SelectMany(section =>
             {
                 var recordNumbers = section.Questions
@@ -87,18 +141,58 @@ public sealed class FormController(
 
         return View(new QuestionnaireSubmissionDetailsViewModel(
             submission.Id,
+            questionnaire.Title,
             submission.QuestionnaireVersion,
             submission.CreatedAtUtc,
             sections));
     }
 
-    [HttpGet]
-    public IActionResult Create() => View(new FormSubmissionInputModel());
-
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(FormSubmissionInputModel model)
+    public async Task<IActionResult> Save(
+        FormSubmissionInputModel model,
+        string intent = "save")
     {
+        var userId = userManager.GetUserId(User);
+        if (userId is null)
+        {
+            return Challenge();
+        }
+
+        QuestionnaireSubmission? submission = null;
+        QuestionnaireDefinition questionnaire;
+        if (model.DraftId.HasValue)
+        {
+            submission = await database.QuestionnaireSubmissions
+                .SingleOrDefaultAsync(item =>
+                    item.Id == model.DraftId.Value && item.UserId == userId && item.IsDraft);
+            if (submission is null)
+            {
+                return NotFound();
+            }
+
+            if (!QuestionnaireCatalog.TryGet(submission.QuestionnaireType, out questionnaire))
+            {
+                throw new InvalidDataException("The saved questionnaire type is not supported.");
+            }
+        }
+        else if (!QuestionnaireCatalog.TryGet(model.QuestionnaireType, out questionnaire))
+        {
+            return BadRequest("The selected questionnaire is not available.");
+        }
+
+        model.QuestionnaireType = questionnaire.Type;
+        model.QuestionnaireTitle = questionnaire.Title;
+        model.TabTitles = questionnaire.TabTitles;
+        model.Sections = questionnaire.Sections;
+        model.ActiveSection = Math.Clamp(
+            model.ActiveSection, 1, questionnaire.Sections.Count);
+        var questionsByKey = questionnaire.Sections
+            .SelectMany(section => section.Questions.Select(question => (section, question)))
+            .ToDictionary(
+                item => item.question.Key,
+                item => (Section: item.section, Question: item.question),
+                StringComparer.Ordinal);
         var cleanedAnswers = new Dictionary<string, string>(StringComparer.Ordinal);
         var totalAnswerLength = 0;
 
@@ -111,7 +205,7 @@ public sealed class FormController(
         {
             var match = AnswerKeyPattern.Match(postedKey);
             if (!match.Success ||
-                !QuestionsByKey.TryGetValue(match.Groups["key"].Value, out var definition) ||
+                !questionsByKey.TryGetValue(match.Groups["key"].Value, out var definition) ||
                 (match.Groups["repeat"].Success && !definition.Section.Repeatable))
             {
                 ModelState.AddModelError(string.Empty, "The form contains an unrecognized field.");
@@ -147,8 +241,10 @@ public sealed class FormController(
             ModelState.AddModelError(string.Empty, "The combined form answers are too long.");
         }
 
-        if (!cleanedAnswers.TryGetValue("declarationConfirmed", out var declaration) ||
-            !string.Equals(declaration, "Yes", StringComparison.Ordinal))
+        var isSubmitting = string.Equals(intent, "submit", StringComparison.Ordinal);
+        if (isSubmitting &&
+            (!cleanedAnswers.TryGetValue("declarationConfirmed", out var declaration) ||
+             !string.Equals(declaration, "Yes", StringComparison.Ordinal)))
         {
             ModelState.AddModelError(
                 "Answers[declarationConfirmed]",
@@ -157,27 +253,59 @@ public sealed class FormController(
 
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return View("Create", model);
         }
 
-        var userId = userManager.GetUserId(User);
-        if (userId is null)
-        {
-            return Challenge();
-        }
-
-        database.QuestionnaireSubmissions.Add(new QuestionnaireSubmission
+        submission ??= new QuestionnaireSubmission
         {
             UserId = userId,
-            AnswersProtected = answersProtector.Protect(JsonSerializer.Serialize(cleanedAnswers)),
-            QuestionnaireVersion = FormQuestionnaire.CurrentVersion,
             CreatedAtUtc = DateTime.UtcNow
-        });
+        };
+        submission.QuestionnaireType = questionnaire.Type;
+        submission.AnswersProtected = answersProtector.Protect(
+            JsonSerializer.Serialize(cleanedAnswers));
+        submission.QuestionnaireVersion = questionnaire.Version;
+        submission.IsDraft = !isSubmitting;
+        if (database.Entry(submission).State == EntityState.Detached)
+        {
+            database.QuestionnaireSubmissions.Add(submission);
+        }
+
         await database.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Your student visa questionnaire was submitted successfully.";
+        if (!isSubmitting)
+        {
+            TempData["SuccessMessage"] = "Your progress has been saved.";
+            var nextSection = string.Equals(intent, "continue", StringComparison.Ordinal)
+                ? Math.Min(model.ActiveSection + 1, questionnaire.Sections.Count)
+                : model.ActiveSection;
+            return RedirectToAction(nameof(Create), new
+            {
+                draftId = submission.Id,
+                section = nextSection,
+                questionnaireType = questionnaire.Type
+            });
+        }
+
+        TempData["SuccessMessage"] = $"Your {questionnaire.Title} was submitted successfully.";
         return RedirectToAction(nameof(Index));
     }
+
+    private static FormSubmissionInputModel CreateInputModel(
+        QuestionnaireDefinition questionnaire,
+        int? draftId,
+        int section,
+        Dictionary<string, string> answers) =>
+        new()
+        {
+            DraftId = draftId,
+            QuestionnaireType = questionnaire.Type,
+            QuestionnaireTitle = questionnaire.Title,
+            TabTitles = questionnaire.TabTitles,
+            Sections = questionnaire.Sections,
+            ActiveSection = Math.Clamp(section, 1, questionnaire.Sections.Count),
+            Answers = answers
+        };
 
     private static bool IsValidAnswer(FormQuestion question, string value)
     {

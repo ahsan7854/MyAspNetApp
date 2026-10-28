@@ -8,12 +8,11 @@
     <p>Sign in to complete the questionnaire and review your previous submissions.</p>
     @if (User.Identity?.IsAuthenticated == true)
     {
-        <a class="button" asp-controller="Form" asp-action="Index">Open my questionnaires</a>
+        <a class="button" asp-controller="Form" asp-action="Particulars">Continue to particulars</a>
     }
     else
     {
-        <a class="button" asp-controller="Account" asp-action="Login"
-           asp-route-returnUrl="@Url.Action("Index", "Form")">Sign in to continue</a>
+        <a class="button" asp-controller="Account" asp-action="Login">Sign in to continue</a>
         <a class="button button-secondary" asp-controller="Account" asp-action="Register">Create an account</a>
     }
 </section>

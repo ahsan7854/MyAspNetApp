@@ -40,7 +40,7 @@ public sealed class AccountController(
         }
 
         await signInManager.SignInAsync(user, isPersistent: false);
-        return RedirectToAction("Index", "Form");
+        return RedirectToAction("Particulars", "Form");
     }
 
     [AllowAnonymous]
@@ -69,7 +69,12 @@ public sealed class AccountController(
             lockoutOnFailure: true);
         if (result.Succeeded)
         {
-            return LocalRedirect(returnUrl ?? Url.Action("Index", "Form")!);
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl!);
+            }
+
+            return RedirectToAction("Particulars", "Form");
         }
 
         ModelState.AddModelError(string.Empty,
