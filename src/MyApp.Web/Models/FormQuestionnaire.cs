@@ -7,10 +7,15 @@ public enum FormQuestionType
     Date,
     Number,
     Email,
-    YesNo
+    YesNo,
+    Checkbox
 }
 
-public sealed record FormQuestion(string Key, string Label, FormQuestionType Type);
+public sealed record FormQuestion(
+    string Key,
+    string Label,
+    FormQuestionType Type,
+    string? GroupTitle = null);
 
 public sealed record FormQuestionnaireSection(
     int Number,

@@ -1,6 +1,6 @@
 # MyAspNetApp
 
-This is an ASP.NET Core MVC application with authenticated, database-backed student visa questionnaire submissions.
+This is an ASP.NET Core MVC application with authenticated, database-backed visa questionnaire submissions.
 
 ## Main folders
 
@@ -37,9 +37,12 @@ with uppercase, lowercase, a number, and a symbol.
    **Continue to questionnaire**, or select a supported visa questionnaire from
    the **Visa types** menu.
 3. Complete the sections of the selected questionnaire using the tabs. The
-   Student Visa, Graduate (Subclass 485), Aged/Remaining Relative, Child Visa
-   (Over 18 and Under 18), Parent (Permanent), and Partner Visa questionnaires
-   are available.
+   Student Visa, Graduate (Subclass 485), Graduate (Subclass 485) No Form 80,
+   Business Visa, ENS/RSMS, Skilled (189/190), Temporary Activity (408),
+   Temporary Work (400), Skills in Demand (482) and Subsequent Entrant,
+   Aged/Remaining Relative, Child Visa (Over 18 and Under 18), Parent
+   (Permanent), Partner Visa, Visitor Visa, Form 80 for applicants over 16,
+   and Talent (124/858) questionnaires, with and without Form 80, are available.
    Save progress at any time and continue later from **My questionnaires**.
    Add records where needed, then confirm the declaration on the final tab and
    submit the questionnaire.

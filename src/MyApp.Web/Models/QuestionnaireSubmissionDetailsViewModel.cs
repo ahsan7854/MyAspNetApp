@@ -1,6 +1,9 @@
 namespace MyApp.Web.Models;
 
-public sealed record QuestionnaireAnswerViewModel(string Label, string Value);
+public sealed record QuestionnaireAnswerViewModel(
+    string Label,
+    string Value,
+    string? GroupTitle = null);
 
 public sealed record QuestionnaireSectionViewModel(
     int Number,

@@ -28,17 +28,17 @@
                     <div class="visa-type-group">
                         <h2>Working and Skilled</h2>
                         <ul>
-                            <li>Business Visas Questionnaire</li>
-                            <li>ENS/RSMS Visa Questionnaire</li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="businessVisa" asp-route-newDraft="true">Business Visa Client Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="ensRsms" asp-route-newDraft="true">ENS/RSMS Visa Questionnaire</a></li>
                             <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="graduate485" asp-route-newDraft="true">Graduate (485) Visa Questionnaire</a></li>
-                            <li>Graduate (485) Visa Questionnaire - No Form 80</li>
-                            <li>Skilled (189/190) Visas Questionnaire</li>
-                            <li>Temporary Activity (408) Visa Questionnaire</li>
-                            <li>Temporary Work (400) Visa Questionnaire</li>
-                            <li>Skills in Demand (482) Questionnaire</li>
-                            <li>Skills in Demand (482) Subsequent Entrant Questionnaire</li>
-                            <li>Talent (124/858) Visa Questionnaire</li>
-                            <li>Talent (124/858) Visa Questionnaire - No Form 80</li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="graduate485NoForm80" asp-route-newDraft="true">Graduate (485) Visa Questionnaire - No Form 80</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="skilled189190" asp-route-newDraft="true">Skilled (189/190) Visas Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="temporaryActivity408" asp-route-newDraft="true">Temporary Activity (408) Visa Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="temporaryWork400" asp-route-newDraft="true">Temporary Work (400) Visa Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="skillsInDemand482" asp-route-newDraft="true">Skills in Demand (482) Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="skillsInDemand482SubsequentEntrant" asp-route-newDraft="true">Skills in Demand (482) Subsequent Entrant Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="talent124858" asp-route-newDraft="true">Talent (124/858) Visa Questionnaire</a></li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="talent124858NoForm80" asp-route-newDraft="true">Talent (124/858) Visa Questionnaire - No Form 80</a></li>
                         </ul>
                     </div>
                     <div class="visa-type-group">
@@ -50,13 +50,13 @@
                     <div class="visa-type-group">
                         <h2>Visitors</h2>
                         <ul>
-                            <li>Visitor Visa Questionnaire</li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="visitorVisa" asp-route-newDraft="true">Visitor Visa Questionnaire</a></li>
                         </ul>
                     </div>
                     <div class="visa-type-group">
                         <h2>Form 80</h2>
                         <ul>
-                            <li>Form 80 Questionnaire for Over 16 Applicants</li>
+                            <li><a asp-controller="Form" asp-action="Create" asp-route-questionnaireType="form80Over16" asp-route-newDraft="true">Form 80 Questionnaire for Over 16 Applicants</a></li>
                         </ul>
                     </div>
                 </div>
@@ -81,5 +81,12 @@
     </main>
     <footer class="site-footer">Secure questionnaire submissions</footer>
     @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        document.querySelector(".visa-dropdown")?.addEventListener("click", event => {
+            if (event.target instanceof Element && event.target.closest("a")) {
+                event.currentTarget.open = false;
+            }
+        });
+    </script>
 </body>
 </html>

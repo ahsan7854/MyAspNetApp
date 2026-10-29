@@ -487,6 +487,13 @@ thead th {
     background: #f8faf9;
 }
 
+.form-table .question-group-heading th {
+    width: auto;
+    background: #edf4f0;
+    color: #10543f;
+    font-weight: 700;
+}
+
 .particulars-table th {
     width: 31%;
 }

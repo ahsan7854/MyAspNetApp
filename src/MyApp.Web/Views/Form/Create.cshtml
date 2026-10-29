@@ -91,15 +91,34 @@
                     <div class="table-scroll">
                         <table class="form-table">
                             <tbody>
+                                @{
+                                    var previousGroupTitle = string.Empty;
+                                }
                                 @foreach (var question in formSection.Questions)
                                 {
                                     var answerKey = question.Key + recordSuffix;
                                     var fieldId = $"answer-{answerKey}";
                                     var value = Model.Answers.TryGetValue(answerKey, out var answer) ? answer : string.Empty;
+                                    if (!string.IsNullOrEmpty(question.GroupTitle) &&
+                                        question.GroupTitle != formSection.Title &&
+                                        question.GroupTitle != previousGroupTitle)
+                                    {
+                                        <tr class="question-group-heading">
+                                            <th colspan="2">@question.GroupTitle</th>
+                                        </tr>
+                                    }
                                     <tr>
                                         <th scope="row"><label for="@fieldId">@question.Label</label></th>
                                         <td>
-                                            @if (question.Type == FormQuestionType.YesNo)
+                                            @if (question.Type == FormQuestionType.Checkbox)
+                                            {
+                                                <input id="@fieldId"
+                                                       name="Answers[@answerKey]"
+                                                       type="checkbox"
+                                                       value="Yes"
+                                                       checked="@(value == "Yes" ? "checked" : null)" />
+                                            }
+                                            else if (question.Type == FormQuestionType.YesNo)
                                             {
                                                 <select id="@fieldId" name="Answers[@answerKey]">
                                                     <option value="">Choose Yes or No</option>
@@ -125,6 +144,7 @@
                                             @Html.ValidationMessage($"Answers[{answerKey}]", null, new { @class = "field-error" })
                                         </td>
                                     </tr>
+                                    previousGroupTitle = question.GroupTitle ?? string.Empty;
                                 }
                             </tbody>
                         </table>

@@ -128,7 +128,8 @@ public sealed class FormController(
                         .Where(question => answers.ContainsKey(question.Key + suffix))
                         .Select(question => new QuestionnaireAnswerViewModel(
                             question.Label,
-                            answers[question.Key + suffix]))
+                            answers[question.Key + suffix],
+                            question.GroupTitle))
                         .ToArray();
                     return new QuestionnaireSectionViewModel(
                         section.Number,
@@ -316,7 +317,7 @@ public sealed class FormController(
 
         return question.Type switch
         {
-            FormQuestionType.YesNo =>
+            FormQuestionType.YesNo or FormQuestionType.Checkbox =>
                 value is "Yes" or "No",
             FormQuestionType.Email =>
                 System.Net.Mail.MailAddress.TryCreate(value, out _),

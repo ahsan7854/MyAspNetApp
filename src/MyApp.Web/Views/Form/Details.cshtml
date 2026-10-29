@@ -34,12 +34,24 @@ else
             <div class="table-scroll">
                 <table class="form-table">
                     <tbody>
+                        @{
+                            var previousGroupTitle = string.Empty;
+                        }
                         @foreach (var answer in entry.Answers)
                         {
+                            if (!string.IsNullOrEmpty(answer.GroupTitle) &&
+                                answer.GroupTitle != entry.Title &&
+                                answer.GroupTitle != previousGroupTitle)
+                            {
+                                <tr class="question-group-heading">
+                                    <th colspan="2">@answer.GroupTitle</th>
+                                </tr>
+                            }
                             <tr>
                                 <th scope="row">@answer.Label</th>
                                 <td class="saved-answer">@answer.Value</td>
                             </tr>
+                            previousGroupTitle = answer.GroupTitle ?? string.Empty;
                         }
                     </tbody>
                 </table>
