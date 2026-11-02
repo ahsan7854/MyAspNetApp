@@ -151,6 +151,12 @@
                     </div>
                 </section>
             }
+            @if (formSection.Number == sections.Count)
+            {
+                <div class="form-actions questionnaire-actions">
+                    <button class="button" type="submit" name="intent" value="submit">Submit questionnaire</button>
+                </div>
+            }
         </section>
     }
 
@@ -161,11 +167,6 @@
                 name="intent"
                 value="continue"
                 hidden="@(Model.ActiveSection == sections.Count)">Save and continue</button>
-        <button class="button"
-                type="submit"
-                name="intent"
-                value="submit"
-                hidden="@(Model.ActiveSection != sections.Count)">Submit questionnaire</button>
     </div>
 </form>
 

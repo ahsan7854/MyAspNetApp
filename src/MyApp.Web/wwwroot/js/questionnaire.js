@@ -152,12 +152,8 @@ function activateQuestionnaireTab(activeTab) {
     }
 
     const saveButton = document.querySelector(".questionnaire-actions button[value='continue']");
-    const submitButton = document.querySelector(".questionnaire-actions button[value='submit']");
     const isLastSection = Number(activeSection) === document.querySelectorAll(".questionnaire-tab").length;
     if (saveButton instanceof HTMLButtonElement) {
         saveButton.hidden = isLastSection;
-    }
-    if (submitButton instanceof HTMLButtonElement) {
-        submitButton.hidden = !isLastSection;
     }
 }

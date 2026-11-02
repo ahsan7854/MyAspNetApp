@@ -51,6 +51,39 @@ with uppercase, lowercase, a number, and a symbol.
 5. The **My questionnaires** page lists only that user's drafts and submissions,
    with links to resume drafts or review submitted answers.
 
+## Client questionnaire work report
+
+The task breakdown below covers the shared questionnaire workflow and all 20
+questionnaire templates currently available in the application. Time tracking
+was not captured while the work was completed, so the hours are retrospective
+estimates for backlog and sprint planning, not verified historical hours.
+
+| Task | Brief description | Estimated time |
+|---|---|---:|
+| Shared questionnaire workflow | Build the reusable questionnaire catalog and multi-section form flow, including tab navigation, answer validation, draft saving and resuming, repeatable records, final declaration, submission, and account-linked storage. | 12 hours |
+| Student Visa Questionnaire | Create the baseline student visa questionnaire template and its sections and questions. | 6 hours |
+| Aged/Remaining Relative Visas Questionnaire | Add the aged and remaining relative visa questions and sections. | 4 hours |
+| Child Visa Questionnaire (Over 18) | Add the over-18 child visa questionnaire template. | 4 hours |
+| Child Visa Questionnaire (Under 18) | Add the under-18 child visa questionnaire template. | 4 hours |
+| Parent (Permanent) Visa Questionnaire | Add the permanent parent visa questionnaire template. | 4 hours |
+| Partner Visas Questionnaire | Add the partner visa questionnaire template. | 5 hours |
+| Partner Visas Questionnaire - No Form 80 | Add the partner visa variant that excludes Form 80 questions. | 2 hours |
+| Business Visa Client Questionnaire | Add the business visa questionnaire and its detailed sections and questions. | 8 hours |
+| ENS/RSMS Visa Questionnaire | Add the employer nomination and regional sponsored visa questionnaire. | 2 hours |
+| Graduate (485) Visa Questionnaire | Add the graduate visa questionnaire template. | 5 hours |
+| Graduate (485) Visa Questionnaire - No Form 80 | Add the graduate visa variant that excludes Form 80 questions. | 4 hours |
+| Skilled (189/190) Visas Questionnaire | Add the skilled independent and nominated visa questionnaire. | 3 hours |
+| Temporary Activity (408) Visa Questionnaire | Add the temporary activity visa questionnaire. | 3 hours |
+| Temporary Work (400) Visa Questionnaire | Add the temporary work visa questionnaire and its supporting questions. | 4 hours |
+| Skills in Demand (482) Questionnaire | Add the Skills in Demand visa questionnaire. | 3 hours |
+| Skills in Demand (482) Subsequent Entrant Questionnaire | Add the subsequent entrant questionnaire variant. | 3 hours |
+| Talent (124/858) Visa Questionnaire | Add the talent visa questionnaire template. | 4 hours |
+| Talent (124/858) Visa Questionnaire - No Form 80 | Add the talent visa variant that excludes Form 80 questions. | 2 hours |
+| Visitor Visa Questionnaire | Add the visitor visa questionnaire template. | 4 hours |
+| Form 80 Questionnaire for Over 16 Applicants | Add the Form 80 questionnaire for applicants over 16. | 4 hours |
+| Cross-template verification | Check questionnaire navigation, saving/resuming, validation, repeatable answers, and submission across the available templates. | 8 hours |
+| **Estimated total** | **Shared workflow, 20 templates, and cross-template verification.** | **98 hours** |
+
 ASP.NET Core Identity and questionnaire submissions are stored in the SQLite
 database at `src\MyApp.Web\App_Data\myapp.db`, in the
 `QuestionnaireSubmissions` table. Each submission has a row containing its
