@@ -17,7 +17,8 @@ This is an ASP.NET Core MVC application with authenticated, database-backed visa
 
 ## Run the web application
 
-Install the .NET 10 SDK, then run these commands from the repository root:
+Install the .NET 10 SDK and SQL Server Express, then run these commands from
+the repository root:
 
 ```powershell
 dotnet restore src\MyApp.Web\MyApp.Web.csproj
@@ -84,18 +85,28 @@ estimates for backlog and sprint planning, not verified historical hours.
 | Cross-template verification | Check questionnaire navigation, saving/resuming, validation, repeatable answers, and submission across the available templates. | 8 hours |
 | **Estimated total** | **Shared workflow, 20 templates, and cross-template verification.** | **98 hours** |
 
-ASP.NET Core Identity and questionnaire submissions are stored in the SQLite
-database at `src\MyApp.Web\App_Data\myapp.db`, in the
-`QuestionnaireSubmissions` table. Each submission has a row containing its
-owner, date, questionnaire version, and answers. Answers are stored as versioned
-JSON protected with ASP.NET Core Data Protection, allowing repeatable
-questionnaire records without a fixed database column for every answer. On
-startup, the application ensures the questionnaire table and its user/date
-index exist; existing form submissions and identity data are preserved. Keep
-the Data Protection key ring available to the application and back it up along
-with the database as part of deployment operations. The encrypted answer
-column is intentionally not readable as plain text in a SQLite viewer; the
-client can review their answers from **My questionnaires**.
+ASP.NET Core Identity, form submissions, and questionnaire submissions are
+stored in the SQL Server database `MyAspNetApp`. The default development
+connection uses the local SQL Server Express `SQLEXPRESS` instance with Windows
+authentication. To use another SQL Server instance, set the
+`ConnectionStrings__DefaultConnection` environment variable to its connection
+string; for example:
+
+```powershell
+$env:ConnectionStrings__DefaultConnection = "Server=YOUR_SERVER;Database=MyAspNetApp;Trusted_Connection=True;TrustServerCertificate=True"
+```
+
+The configured SQL Server login must be allowed to create the database the
+first time the application starts. The application creates its schema on
+startup. Each questionnaire submission has a row containing its owner, date,
+questionnaire version, and answers. Answers are stored as versioned JSON
+protected with ASP.NET Core Data Protection, allowing repeatable questionnaire
+records without a fixed database column for every answer. Keep the Data
+Protection key ring available to the application and back it up along with the
+database as part of deployment operations. Existing SQLite data is not copied
+automatically; it remains in `src\MyApp.Web\App_Data\myapp.db`. The encrypted
+answer column is intentionally not readable as plain text in a database viewer;
+the client can review their answers from **My questionnaires**.
 
 The app uses HTTPS redirection. For local development, trust the ASP.NET Core
 development certificate if prompted by the SDK.

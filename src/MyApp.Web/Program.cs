@@ -4,13 +4,13 @@ using MyApp.Web.Data;
 using MyApp.Web.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-var databaseDirectory = Path.Combine(builder.Environment.ContentRootPath, "App_Data");
-Directory.CreateDirectory(databaseDirectory);
-var databasePath = Path.Combine(databaseDirectory, "myapp.db");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "The 'DefaultConnection' connection string is not configured.");
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite($"Data Source={databasePath}"));
+    options.UseSqlServer(connectionString));
 builder.Services.AddAntiforgery(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always);
 builder.Services
@@ -59,57 +59,6 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var database = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await database.Database.EnsureCreatedAsync();
-    await database.Database.ExecuteSqlRawAsync("""
-        CREATE TABLE IF NOT EXISTS "QuestionnaireSubmissions" (
-            "Id" INTEGER NOT NULL CONSTRAINT "PK_QuestionnaireSubmissions" PRIMARY KEY AUTOINCREMENT,
-            "UserId" TEXT NOT NULL,
-            "AnswersProtected" TEXT NOT NULL,
-            "QuestionnaireVersion" INTEGER NOT NULL,
-            "CreatedAtUtc" TEXT NOT NULL,
-            "QuestionnaireType" TEXT NOT NULL DEFAULT 'student500',
-            "IsDraft" INTEGER NOT NULL DEFAULT 0,
-            CONSTRAINT "FK_QuestionnaireSubmissions_AspNetUsers_UserId"
-                FOREIGN KEY ("UserId") REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
-        );
-        """);
-    await database.Database.OpenConnectionAsync();
-    var questionnaireColumns = new HashSet<string>(StringComparer.Ordinal);
-    await using (var command = database.Database.GetDbConnection().CreateCommand())
-    {
-        command.CommandText = "PRAGMA table_info('QuestionnaireSubmissions')";
-        await using var reader = await command.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
-        {
-            questionnaireColumns.Add(reader.GetString(1));
-        }
-    }
-    await database.Database.CloseConnectionAsync();
-    if (questionnaireColumns.Contains("AnswersJson") &&
-        !questionnaireColumns.Contains("AnswersProtected"))
-    {
-        await database.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE "QuestionnaireSubmissions"
-            RENAME COLUMN "AnswersJson" TO "AnswersProtected";
-            """);
-    }
-    if (!questionnaireColumns.Contains("IsDraft"))
-    {
-        await database.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE "QuestionnaireSubmissions"
-            ADD COLUMN "IsDraft" INTEGER NOT NULL DEFAULT 0;
-            """);
-    }
-    if (!questionnaireColumns.Contains("QuestionnaireType"))
-    {
-        await database.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE "QuestionnaireSubmissions"
-            ADD COLUMN "QuestionnaireType" TEXT NOT NULL DEFAULT 'student500';
-            """);
-    }
-    await database.Database.ExecuteSqlRawAsync("""
-        CREATE INDEX IF NOT EXISTS "IX_QuestionnaireSubmissions_UserId_CreatedAtUtc"
-        ON "QuestionnaireSubmissions" ("UserId", "CreatedAtUtc");
-        """);
 }
 
 app.Run();
