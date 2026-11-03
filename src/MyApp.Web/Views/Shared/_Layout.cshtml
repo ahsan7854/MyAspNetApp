@@ -63,6 +63,17 @@
                     </div>
                 </div>
             </details>
+            <details class="visa-dropdown nomination-dropdown">
+                <summary>Nomination templates</summary>
+                <div class="visa-dropdown-panel">
+                    <p class="visa-dropdown-note">Select a template to open its PDF in a new tab. More templates will be added when provided.</p>
+                    <ul class="nomination-template-list">
+                        <li>186 Nomination questionnaire</li>
+                        <li><a href="~/documents/business-sponsor-questionnaire-v9-4-0-completed-1.pdf" target="_blank" rel="noopener noreferrer">Business sponsor Questionnaire</a></li>
+                        <li>482 Nomination Questionnaire</li>
+                    </ul>
+                </div>
+            </details>
             @if (User.Identity?.IsAuthenticated == true)
             {
                 <a asp-controller="Form" asp-action="Index">My questionnaires</a>
@@ -84,10 +95,12 @@
     <footer class="site-footer">Secure questionnaire submissions</footer>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
-        document.querySelector(".visa-dropdown")?.addEventListener("click", event => {
-            if (event.target instanceof Element && event.target.closest("a")) {
-                event.currentTarget.open = false;
-            }
+        document.querySelectorAll(".visa-dropdown").forEach(dropdown => {
+            dropdown.addEventListener("click", event => {
+                if (event.target instanceof Element && event.target.closest("a")) {
+                    dropdown.open = false;
+                }
+            });
         });
     </script>
 </body>
