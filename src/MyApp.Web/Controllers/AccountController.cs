@@ -39,8 +39,8 @@ public sealed class AccountController(
             return View(model);
         }
 
-        await signInManager.SignInAsync(user, isPersistent: false);
-        return RedirectToAction("Particulars", "Form");
+        TempData["SuccessMessage"] = "Your account has been created. Please sign in to continue.";
+        return RedirectToAction(nameof(Login));
     }
 
     [AllowAnonymous]

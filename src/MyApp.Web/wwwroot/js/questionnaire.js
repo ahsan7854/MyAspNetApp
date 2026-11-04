@@ -10,6 +10,155 @@ document.addEventListener("click", (event) => {
         return;
     }
 
+    const addTravelRowButton = target.closest(".add-travel-row");
+    if (addTravelRowButton instanceof HTMLButtonElement) {
+        const table = addTravelRowButton.closest("[data-travel-list]")?.querySelector(".travel-history-table");
+        const rows = table?.querySelectorAll("[data-travel-row]");
+        const lastRow = rows?.[rows.length - 1];
+        const currentNumber = Number(lastRow?.dataset.recordNumber) || 1;
+        const nextNumber = currentNumber + 1;
+        if (!(table instanceof HTMLTableElement) ||
+            !(lastRow instanceof HTMLTableRowElement) ||
+            nextNumber > 20) {
+            return;
+        }
+
+        const newRow = lastRow.cloneNode(true);
+        if (!(newRow instanceof HTMLTableRowElement)) {
+            return;
+        }
+        newRow.dataset.recordNumber = String(nextNumber);
+        const serialNumber = newRow.querySelector("th[scope='row']");
+        if (serialNumber) {
+            serialNumber.textContent = String(nextNumber);
+        }
+        newRow.querySelectorAll("input, select, textarea").forEach((control) => {
+            if (control instanceof HTMLInputElement ||
+                control instanceof HTMLSelectElement ||
+                control instanceof HTMLTextAreaElement) {
+                const match = control.name.match(/^Answers\[(travelHistory[A-Za-z0-9]*)(?:__\d+)?\]$/);
+                if (match) {
+                    control.name = `Answers[${match[1]}__${nextNumber}]`;
+                }
+                if (control.id) {
+                    control.id = control.id.replace(/__\d+$/, "") + `__${nextNumber}`;
+                }
+                control.value = "";
+                control.disabled = false;
+            }
+        });
+        lastRow.insertAdjacentElement("afterend", newRow);
+        if (nextNumber === 20) {
+            addTravelRowButton.disabled = true;
+        }
+        return;
+    }
+
+    const addChildButton = target.closest(".add-child");
+    if (addChildButton instanceof HTMLButtonElement) {
+        const childList = addChildButton.closest("[data-child-list]");
+        const existingChildren = childList?.querySelectorAll("[data-child-record]");
+        if (!(childList instanceof HTMLElement) || !existingChildren?.length) {
+            return;
+        }
+
+        const lastChild = existingChildren[existingChildren.length - 1];
+        const recordNumbers = Array.from(existingChildren).map((child) =>
+            Number(child.dataset.recordNumber) || 1);
+        const recordNumber = Math.max(...recordNumbers) + 1;
+        if (recordNumber > 20 || !(lastChild instanceof HTMLElement)) {
+            return;
+        }
+
+        const clone = lastChild.cloneNode(true);
+        if (!(clone instanceof HTMLElement)) {
+            return;
+        }
+
+        clone.dataset.recordNumber = String(recordNumber);
+        const heading = clone.querySelector("h4");
+        if (heading) {
+            heading.id = `child-heading-${recordNumber}`;
+            heading.textContent = `Child ${recordNumber}`;
+            clone.setAttribute("aria-labelledby", heading.id);
+        }
+        clone.querySelectorAll("input, select, textarea").forEach((control) => {
+            if (control instanceof HTMLInputElement ||
+                control instanceof HTMLSelectElement ||
+                control instanceof HTMLTextAreaElement) {
+                const match = control.name.match(/^Answers\[([A-Za-z][A-Za-z0-9]*)(?:__\d+)?\]$/);
+                if (match) {
+                    control.name = `Answers[${match[1]}__${recordNumber}]`;
+                }
+                if (control.id) {
+                    control.id = control.id.replace(/__\d+$/, "") + `__${recordNumber}`;
+                }
+                control.value = "";
+                control.disabled = false;
+            }
+        });
+        clone.querySelectorAll("label[for]").forEach((label) => {
+            const currentFor = label.getAttribute("for");
+            if (currentFor) {
+                label.setAttribute("for", currentFor.replace(/__\d+$/, "") + `__${recordNumber}`);
+            }
+        });
+        clone.querySelectorAll("[data-conditional-question]").forEach((row) => {
+            if (row instanceof HTMLTableRowElement && row.dataset.dependsOn) {
+                row.dataset.dependsOn = row.dataset.dependsOn.replace(/__\d+$/, "") + `__${recordNumber}`;
+                row.hidden = true;
+                row.querySelectorAll("input, select, textarea").forEach((control) => {
+                    if (control instanceof HTMLInputElement ||
+                        control instanceof HTMLSelectElement ||
+                        control instanceof HTMLTextAreaElement) {
+                        control.disabled = true;
+                    }
+                });
+            }
+        });
+        let removeButton = clone.querySelector(".remove-child");
+        if (!(removeButton instanceof HTMLButtonElement)) {
+            removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "button button-secondary remove-child";
+            removeButton.textContent = "Remove this child";
+            clone.querySelector(".questionnaire-section-heading")?.append(removeButton);
+        }
+
+        lastChild.insertAdjacentElement("afterend", clone);
+        clone.querySelectorAll("[data-conditional-question]").forEach((row) => {
+            if (row instanceof HTMLTableRowElement && row.dataset.dependsOn) {
+                updateConditionalQuestions(row.dataset.dependsOn);
+            }
+        });
+        if (recordNumber === 20) {
+            addChildButton.disabled = true;
+        }
+        return;
+    }
+
+    const removeChildButton = target.closest(".remove-child");
+    if (removeChildButton instanceof HTMLButtonElement) {
+        const childRecord = removeChildButton.closest("[data-child-record]");
+        const childList = removeChildButton.closest("[data-child-list]");
+        const childRecords = childList?.querySelectorAll("[data-child-record]");
+        if (childRecord instanceof HTMLElement && childRecords?.length === 1) {
+            childRecord.querySelectorAll("input, select, textarea").forEach((control) => {
+                if (control instanceof HTMLInputElement ||
+                    control instanceof HTMLSelectElement ||
+                    control instanceof HTMLTextAreaElement) {
+                    control.value = "";
+                }
+            });
+        } else {
+            childRecord?.remove();
+        }
+        if (childList instanceof HTMLElement) {
+            childList.querySelector(".add-child")?.removeAttribute("disabled");
+        }
+        return;
+    }
+
     const addButton = target.closest(".repeat-record");
     if (addButton instanceof HTMLButtonElement) {
         const section = addButton.closest(".questionnaire-section");
@@ -108,6 +257,19 @@ document.addEventListener("click", (event) => {
     }
 });
 
+document.addEventListener("change", (event) => {
+    const target = event.target;
+    if (target instanceof HTMLSelectElement && target.id) {
+        updateConditionalQuestions(target.id);
+        if (target.id === "answer-hasChildren") {
+            updateChildListVisibility(target);
+        }
+        if (target.id === "answer-visitedCountryLast10Years") {
+            updateTravelListVisibility(target);
+        }
+    }
+});
+
 document.addEventListener("keydown", (event) => {
     const tab = event.target;
     if (!(tab instanceof HTMLButtonElement) || !tab.matches(".questionnaire-tab")) {
@@ -133,6 +295,104 @@ document.addEventListener("keydown", (event) => {
     activateQuestionnaireTab(tabs[nextIndex]);
     tabs[nextIndex].focus();
 });
+
+document.querySelectorAll("[data-conditional-question]").forEach((row) => {
+    if (row instanceof HTMLTableRowElement && row.dataset.dependsOn) {
+        updateConditionalQuestions(row.dataset.dependsOn);
+    }
+});
+
+const hasChildrenQuestion = document.getElementById("answer-hasChildren");
+if (hasChildrenQuestion instanceof HTMLSelectElement) {
+    updateChildListVisibility(hasChildrenQuestion);
+}
+
+const visitedCountryQuestion = document.getElementById("answer-visitedCountryLast10Years");
+if (visitedCountryQuestion instanceof HTMLSelectElement) {
+    updateTravelListVisibility(visitedCountryQuestion);
+}
+
+function updateTravelListVisibility(question) {
+    const isVisible = question.value === "Yes";
+    document.querySelectorAll("[data-travel-list]").forEach((travelList) => {
+        if (!(travelList instanceof HTMLElement)) {
+            return;
+        }
+
+        travelList.hidden = !isVisible;
+        travelList.querySelectorAll("input, select, textarea").forEach((control) => {
+            if (control instanceof HTMLInputElement ||
+                control instanceof HTMLSelectElement ||
+                control instanceof HTMLTextAreaElement) {
+                control.disabled = !isVisible;
+                if (!isVisible) {
+                    control.value = "";
+                }
+            }
+        });
+        const addButton = travelList.querySelector(".add-travel-row");
+        if (addButton instanceof HTMLButtonElement) {
+            addButton.disabled = !isVisible ||
+                travelList.querySelectorAll("[data-travel-row]").length >= 20;
+        }
+    });
+}
+
+function updateChildListVisibility(question) {
+    const isVisible = question.value === "Yes";
+    document.querySelectorAll("[data-child-list]").forEach((childList) => {
+        if (!(childList instanceof HTMLElement)) {
+            return;
+        }
+
+        childList.hidden = !isVisible;
+        childList.querySelectorAll("input, select, textarea").forEach((control) => {
+            if (control instanceof HTMLInputElement ||
+                control instanceof HTMLSelectElement ||
+                control instanceof HTMLTextAreaElement) {
+                control.disabled = !isVisible;
+                if (!isVisible) {
+                    control.value = "";
+                }
+            }
+        });
+        childList.querySelectorAll("[data-conditional-question]").forEach((row) => {
+            if (row instanceof HTMLTableRowElement && row.dataset.dependsOn) {
+                updateConditionalQuestions(row.dataset.dependsOn);
+            }
+        });
+        const addButton = childList.querySelector(".add-child");
+        if (addButton instanceof HTMLButtonElement) {
+            addButton.disabled = !isVisible ||
+                childList.querySelectorAll("[data-child-record]").length >= 20;
+        }
+    });
+}
+
+function updateConditionalQuestions(dependencyId) {
+    document.querySelectorAll("[data-conditional-question]").forEach((row) => {
+        if (!(row instanceof HTMLTableRowElement) || row.dataset.dependsOn !== dependencyId) {
+            return;
+        }
+
+        const dependency = document.getElementById(dependencyId);
+        const childList = row.closest("[data-child-list]");
+        const isVisible = dependency instanceof HTMLSelectElement &&
+            dependency.value === row.dataset.dependsValue &&
+            !(childList instanceof HTMLElement && childList.hidden);
+        row.hidden = !isVisible;
+        row.querySelectorAll("input, select, textarea").forEach((control) => {
+            if (control instanceof HTMLInputElement ||
+                control instanceof HTMLSelectElement ||
+                control instanceof HTMLTextAreaElement) {
+                control.disabled = !isVisible;
+                if (!isVisible) {
+                    control.value = "";
+                }
+            }
+        });
+    });
+}
 
 function activateQuestionnaireTab(activeTab) {
     const activeSection = activeTab.dataset.section;

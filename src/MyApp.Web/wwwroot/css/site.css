@@ -583,6 +583,31 @@ thead th {
     max-width: 620px;
 }
 
+.travel-history-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.travel-history-table .travel-serial-column {
+    width: 3.5rem;
+}
+
+.travel-history-table .travel-date-column,
+.travel-history-table .travel-date-cell {
+    width: 10.5rem;
+}
+
+.travel-history-table .travel-date-cell input {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 0.35rem;
+}
+
+.travel-history-table select {
+    width: 100%;
+    min-width: 0;
+}
+
 .form-table textarea {
     min-height: 80px;
 }

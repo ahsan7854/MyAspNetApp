@@ -47,7 +47,7 @@
         var panelId = $"questionnaire-panel-{formSection.Number}";
         var tabId = $"questionnaire-tab-{formSection.Number}";
         var recordNumbers = new List<int> { 1 };
-        if (formSection.Repeatable)
+        if (formSection.Repeatable && formSection.Number != 7)
         {
             for (var recordNumber = 2; recordNumber <= 20; recordNumber++)
             {
@@ -55,6 +55,40 @@
                 if (formSection.Questions.Any(question => Model.Answers.ContainsKey(question.Key + suffix)))
                 {
                     recordNumbers.Add(recordNumber);
+                }
+            }
+        }
+        var childQuestions = formSection.Number == 7
+            ? formSection.Questions.Where(question => question.Key != "hasChildren").ToArray()
+            : [];
+        var travelQuestions = formSection.Number == 10
+            ? formSection.Questions.Where(question => question.Key.StartsWith("travelHistory", StringComparison.Ordinal)).ToArray()
+            : [];
+        var travelRecordNumbers = new List<int> { 1 };
+        var childRecordNumbers = new List<int> { 1 };
+        var showChildren = Model.Answers.TryGetValue("hasChildren", out var hasChildrenAnswer) &&
+            hasChildrenAnswer == "Yes";
+        var showTravelHistory = Model.Answers.TryGetValue("visitedCountryLast10Years", out var visitedCountryAnswer) &&
+            visitedCountryAnswer == "Yes";
+        if (formSection.Number == 7)
+        {
+            for (var childNumber = 2; childNumber <= 20; childNumber++)
+            {
+                var childSuffix = $"__{childNumber}";
+                if (childQuestions.Any(question => Model.Answers.ContainsKey(question.Key + childSuffix)))
+                {
+                    childRecordNumbers.Add(childNumber);
+                }
+            }
+            if (formSection.Number == 10)
+            {
+                for (var tripNumber = 2; tripNumber <= 20; tripNumber++)
+                {
+                    var tripSuffix = $"__{tripNumber}";
+                    if (travelQuestions.Any(question => Model.Answers.ContainsKey(question.Key + tripSuffix)))
+                    {
+                        travelRecordNumbers.Add(tripNumber);
+                    }
                 }
             }
         }
@@ -83,7 +117,7 @@
                          data-repeatable="@formSection.Repeatable.ToString().ToLowerInvariant()">
                     <div class="questionnaire-section-heading">
                         <h3 id="@headingId">@formSection.Number. @formSection.Title@(recordNumber == 1 ? string.Empty : $" (additional record {recordNumber})")</h3>
-                        @if (formSection.Repeatable)
+                        @if (formSection.Repeatable && formSection.Number != 7)
                         {
                             <button class="button button-secondary repeat-record" type="button">Add another record</button>
                         }
@@ -94,11 +128,22 @@
                                 @{
                                     var previousGroupTitle = string.Empty;
                                 }
-                                @foreach (var question in formSection.Questions)
+                                @foreach (var question in formSection.Number == 7
+                                    ? formSection.Questions.Where(question => question.Key == "hasChildren")
+                                    : formSection.Number == 10
+                                        ? formSection.Questions.Where(question => !question.Key.StartsWith("travelHistory", StringComparison.Ordinal))
+                                        : formSection.Questions)
                                 {
                                     var answerKey = question.Key + recordSuffix;
                                     var fieldId = $"answer-{answerKey}";
                                     var value = Model.Answers.TryGetValue(answerKey, out var answer) ? answer : string.Empty;
+                                    var isConditional = !string.IsNullOrEmpty(question.DependsOnKey);
+                                    var dependsOnAnswerKey = question.DependsOnKey + recordSuffix;
+                                    var dependsOnValue = Model.Answers.TryGetValue(dependsOnAnswerKey, out var conditionalAnswer)
+                                        ? conditionalAnswer
+                                        : string.Empty;
+                                    var isVisible = !isConditional ||
+                                        string.Equals(dependsOnValue, question.DependsOnValue, StringComparison.Ordinal);
                                     if (!string.IsNullOrEmpty(question.GroupTitle) &&
                                         question.GroupTitle != formSection.Title &&
                                         question.GroupTitle != previousGroupTitle)
@@ -107,7 +152,10 @@
                                             <th colspan="2">@question.GroupTitle</th>
                                         </tr>
                                     }
-                                    <tr>
+                                    <tr data-conditional-question="@(isConditional ? "true" : null)"
+                                        data-depends-on="@(isConditional ? $"answer-{dependsOnAnswerKey}" : null)"
+                                        data-depends-value="@(isConditional ? question.DependsOnValue : null)"
+                                        hidden="@(!isVisible)">
                                         <th scope="row"><label for="@fieldId">@question.Label</label></th>
                                         <td>
                                             @if (question.Type == FormQuestionType.Checkbox)
@@ -126,6 +174,16 @@
                                                     <option value="No" selected="@(value == "No" ? "selected" : null)">No</option>
                                                 </select>
                                             }
+                                            else if (question.Type == FormQuestionType.Select)
+                                            {
+                                                <select id="@fieldId" name="Answers[@answerKey]">
+                                                    <option value="">Select an option</option>
+                                                    @foreach (var option in question.Options ?? [])
+                                                    {
+                                                        <option value="@option" selected="@(value == option ? "selected" : null)">@option</option>
+                                                    }
+                                                </select>
+                                            }
                                             else if (question.Type == FormQuestionType.LongText)
                                             {
                                                 <textarea id="@fieldId" name="Answers[@answerKey]" rows="3" maxlength="4000">@value</textarea>
@@ -135,11 +193,17 @@
                                                 var inputType = question.Type switch
                                                 {
                                                     FormQuestionType.Date => "date",
-                                                    FormQuestionType.Number => "number",
+                                                    FormQuestionType.Number or FormQuestionType.DecimalNumber => "number",
                                                     FormQuestionType.Email => "email",
                                                     _ => "text"
                                                 };
-                                                <input id="@fieldId" name="Answers[@answerKey]" type="@inputType" value="@value" maxlength="4000" />
+                                                <input id="@fieldId"
+                                                       name="Answers[@answerKey]"
+                                                       type="@inputType"
+                                                       value="@value"
+                                                       min="@(question.Type == FormQuestionType.DecimalNumber ? "0" : null)"
+                                                       step="@(question.Type == FormQuestionType.DecimalNumber ? "any" : null)"
+                                                       maxlength="4000" />
                                             }
                                             @Html.ValidationMessage($"Answers[{answerKey}]", null, new { @class = "field-error" })
                                         </td>
@@ -149,6 +213,158 @@
                             </tbody>
                         </table>
                     </div>
+                    @if (formSection.Number == 7)
+                    {
+                        <div class="child-record-list"
+                             data-child-list
+                             data-child-toggle="answer-hasChildren"
+                             hidden="@(!showChildren)">
+                            @foreach (var childNumber in childRecordNumbers)
+                            {
+                                var childSuffix = childNumber == 1 ? string.Empty : $"__{childNumber}";
+                                var childHeadingId = $"child-heading-{childNumber}";
+                                <section class="form-section child-record"
+                                         data-child-record
+                                         data-record-number="@childNumber"
+                                         aria-labelledby="@childHeadingId">
+                                    <div class="questionnaire-section-heading">
+                                        <h4 id="@childHeadingId">Child @childNumber</h4>
+                                        <button class="button button-secondary remove-child" type="button">Remove this child</button>
+                                    </div>
+                                    <div class="table-scroll">
+                                        <table class="form-table">
+                                            <tbody>
+                                                @foreach (var question in childQuestions)
+                                                {
+                                                    var answerKey = question.Key + childSuffix;
+                                                    var fieldId = $"answer-{answerKey}";
+                                                    var value = Model.Answers.TryGetValue(answerKey, out var answer) ? answer : string.Empty;
+                                                    var isConditional = !string.IsNullOrEmpty(question.DependsOnKey);
+                                                    var dependencyKey = question.DependsOnKey + childSuffix;
+                                                    var dependencyId = $"answer-{dependencyKey}";
+                                                    var dependencyValue = Model.Answers.TryGetValue(dependencyKey, out var dependencyAnswer)
+                                                        ? dependencyAnswer
+                                                        : string.Empty;
+                                                    var isVisible = !isConditional ||
+                                                        string.Equals(dependencyValue, question.DependsOnValue, StringComparison.Ordinal);
+                                                    var isDisabled = !showChildren || !isVisible;
+                                                    <tr data-conditional-question="@(isConditional ? "true" : null)"
+                                                        data-depends-on="@(isConditional ? dependencyId : null)"
+                                                        data-depends-value="@(isConditional ? question.DependsOnValue : null)"
+                                                        hidden="@(!isVisible)">
+                                                        <th scope="row"><label for="@fieldId">@question.Label</label></th>
+                                                        <td>
+                                                            @if (question.Type == FormQuestionType.YesNo)
+                                                            {
+                                                                <select id="@fieldId" name="Answers[@answerKey]" disabled="@isDisabled">
+                                                                    <option value="">Choose Yes or No</option>
+                                                                    <option value="Yes" selected="@(value == "Yes" ? "selected" : null)">Yes</option>
+                                                                    <option value="No" selected="@(value == "No" ? "selected" : null)">No</option>
+                                                                </select>
+                                                            }
+                                                            else if (question.Type == FormQuestionType.Select)
+                                                            {
+                                                                <select id="@fieldId" name="Answers[@answerKey]" disabled="@isDisabled">
+                                                                    <option value="">Select an option</option>
+                                                                    @foreach (var option in question.Options ?? [])
+                                                                    {
+                                                                        <option value="@option" selected="@(value == option ? "selected" : null)">@option</option>
+                                                                    }
+                                                                </select>
+                                                            }
+                                                            else if (question.Type == FormQuestionType.LongText)
+                                                            {
+                                                                <textarea id="@fieldId" name="Answers[@answerKey]" rows="3" maxlength="4000" disabled="@isDisabled">@value</textarea>
+                                                            }
+                                                            else
+                                                            {
+                                                                var inputType = question.Type switch
+                                                                {
+                                                                    FormQuestionType.Date => "date",
+                                                                    FormQuestionType.Number or FormQuestionType.DecimalNumber => "number",
+                                                                    FormQuestionType.Email => "email",
+                                                                    _ => "text"
+                                                                };
+                                                                <input id="@fieldId"
+                                                                       name="Answers[@answerKey]"
+                                                                       type="@inputType"
+                                                                       value="@value"
+                                                                       disabled="@isDisabled"
+                                                                       maxlength="4000" />
+                                                            }
+                                                            @Html.ValidationMessage($"Answers[{answerKey}]", null, new { @class = "field-error" })
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </section>
+                            }
+                            <button class="button button-secondary add-child" type="button" disabled="@(!showChildren)">Add another child</button>
+                        </div>
+                    }
+                    @if (formSection.Number == 10)
+                    {
+                        <div class="travel-history-list"
+                             data-travel-list
+                             hidden="@(!showTravelHistory)">
+                            <div class="table-scroll">
+                                <table class="form-table travel-history-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="travel-serial-column" scope="col">Sr. No.</th>
+                                            @foreach (var question in travelQuestions)
+                                            {
+                                                <th class="@(question.Type == FormQuestionType.Date ? "travel-date-column" : string.Empty)" scope="col">@question.Label</th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var tripNumber in travelRecordNumbers)
+                                        {
+                                            var tripSuffix = tripNumber == 1 ? string.Empty : $"__{tripNumber}";
+                                            <tr data-travel-row data-record-number="@tripNumber">
+                                                <th scope="row">@tripNumber</th>
+                                                @foreach (var question in travelQuestions)
+                                                {
+                                                    var answerKey = question.Key + tripSuffix;
+                                                    var fieldId = $"answer-{answerKey}";
+                                                    var value = Model.Answers.TryGetValue(answerKey, out var answer) ? answer : string.Empty;
+                                                    <td class="@(question.Type == FormQuestionType.Date ? "travel-date-cell" : string.Empty)">
+                                                        @if (question.Type == FormQuestionType.Select)
+                                                        {
+                                                            <select id="@fieldId"
+                                                                    name="Answers[@answerKey]"
+                                                                    aria-label="@question.Label"
+                                                                    disabled="@(!showTravelHistory)">
+                                                                <option value="">Select an option</option>
+                                                                @foreach (var option in question.Options ?? [])
+                                                                {
+                                                                    <option value="@option" selected="@(value == option ? "selected" : null)">@option</option>
+                                                                }
+                                                            </select>
+                                                        }
+                                                        else
+                                                        {
+                                                            <input id="@fieldId"
+                                                                   name="Answers[@answerKey]"
+                                                                   type="date"
+                                                                   value="@value"
+                                                                   aria-label="@question.Label"
+                                                                   disabled="@(!showTravelHistory)" />
+                                                        }
+                                                        @Html.ValidationMessage($"Answers[{answerKey}]", null, new { @class = "field-error" })
+                                                    </td>
+                                                }
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="button button-secondary add-travel-row" type="button" disabled="@(!showTravelHistory)">Add</button>
+                        </div>
+                    }
                 </section>
             }
             @if (formSection.Number == sections.Count)

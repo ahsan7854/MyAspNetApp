@@ -113,6 +113,7 @@ public sealed class FormController(
             .SelectMany(section =>
             {
                 var recordNumbers = section.Questions
+                    .Where(question => !question.AllowMultipleAnswers)
                     .SelectMany(question => answers.Keys
                         .Where(key => key == question.Key ||
                             key.StartsWith(question.Key + "__", StringComparison.Ordinal))
@@ -125,11 +126,25 @@ public sealed class FormController(
                 {
                     var suffix = recordNumber == 1 ? string.Empty : $"__{recordNumber}";
                     var sectionAnswers = section.Questions
+                        .Where(question => !question.AllowMultipleAnswers)
                         .Where(question => answers.ContainsKey(question.Key + suffix))
                         .Select(question => new QuestionnaireAnswerViewModel(
                             question.Label,
                             answers[question.Key + suffix],
                             question.GroupTitle))
+                        .Concat(section.Number == 10
+                            ? section.Questions
+                                .Where(question => question.AllowMultipleAnswers)
+                                .SelectMany(question => answers.Keys
+                                    .Where(key => key == question.Key ||
+                                        key.StartsWith(question.Key + "__", StringComparison.Ordinal))
+                                    .Select(key => (Question: question, Key: key, RecordNumber: GetRecordNumber(key)))
+                                    .OrderBy(item => item.RecordNumber)
+                                    .Select(item => new QuestionnaireAnswerViewModel(
+                                        $"Travel record {item.RecordNumber} - {item.Question.Label}",
+                                        answers[item.Key],
+                                        item.Question.GroupTitle)))
+                            : [])
                         .ToArray();
                     return new QuestionnaireSectionViewModel(
                         section.Number,
@@ -207,7 +222,9 @@ public sealed class FormController(
             var match = AnswerKeyPattern.Match(postedKey);
             if (!match.Success ||
                 !questionsByKey.TryGetValue(match.Groups["key"].Value, out var definition) ||
-                (match.Groups["repeat"].Success && !definition.Section.Repeatable))
+                (match.Groups["repeat"].Success &&
+                    !definition.Section.Repeatable &&
+                    !definition.Question.AllowMultipleAnswers))
             {
                 ModelState.AddModelError(string.Empty, "The form contains an unrecognized field.");
                 continue;
@@ -325,6 +342,11 @@ public sealed class FormController(
                 DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _),
             FormQuestionType.Number =>
                 int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out _),
+            FormQuestionType.DecimalNumber =>
+                decimal.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var score) &&
+                score >= 0,
+            FormQuestionType.Select =>
+                question.Options?.Contains(value, StringComparer.Ordinal) == true,
             _ => true
         };
     }

@@ -6,6 +6,10 @@
 <section class="panel narrow">
     <h1>Sign in</h1>
     <p>Sign in to open the protected form and your submissions.</p>
+    @if (TempData["SuccessMessage"] is string successMessage)
+    {
+        <p class="notice" role="status">@successMessage</p>
+    }
     <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
         <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
         <div class="field">
