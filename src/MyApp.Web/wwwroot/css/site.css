@@ -583,6 +583,28 @@ thead th {
     max-width: 620px;
 }
 
+.radio-options {
+    display: flex;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.radio-options label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.radio-options input[type="radio"] {
+    width: auto;
+    min-height: auto;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+}
+
 .travel-history-table {
     width: 100%;
     table-layout: fixed;

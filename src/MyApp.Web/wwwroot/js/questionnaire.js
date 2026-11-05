@@ -264,7 +264,7 @@ document.addEventListener("change", (event) => {
         if (target.id === "answer-hasChildren") {
             updateChildListVisibility(target);
         }
-        if (target.id === "answer-visitedCountryLast10Years") {
+        if (document.querySelector(`[data-travel-toggle="${target.id}"]`)) {
             updateTravelListVisibility(target);
         }
     }
@@ -307,15 +307,24 @@ if (hasChildrenQuestion instanceof HTMLSelectElement) {
     updateChildListVisibility(hasChildrenQuestion);
 }
 
-const visitedCountryQuestion = document.getElementById("answer-visitedCountryLast10Years");
-if (visitedCountryQuestion instanceof HTMLSelectElement) {
-    updateTravelListVisibility(visitedCountryQuestion);
-}
+document.querySelectorAll("[data-travel-list]").forEach((travelList) => {
+    if (!(travelList instanceof HTMLElement)) {
+        return;
+    }
+
+    const question = document.getElementById(travelList.dataset.travelToggle);
+    if (question instanceof HTMLSelectElement) {
+        updateTravelListVisibility(question);
+    }
+});
 
 function updateTravelListVisibility(question) {
     const isVisible = question.value === "Yes";
     document.querySelectorAll("[data-travel-list]").forEach((travelList) => {
         if (!(travelList instanceof HTMLElement)) {
+            return;
+        }
+        if (travelList.dataset.travelToggle !== question.id) {
             return;
         }
 

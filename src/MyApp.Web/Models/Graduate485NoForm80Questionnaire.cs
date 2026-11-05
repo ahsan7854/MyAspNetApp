@@ -2,15 +2,17 @@ namespace MyApp.Web.Models;
 
 public static class Graduate485NoForm80Questionnaire
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 13;
     public const string Type = "graduate485NoForm80";
     public const string Title = "Graduate (Subclass 485) Visa Questionnaire - No Form 80";
 
     private static readonly (string Key, string Label)[] CharacterQuestions =
     [
+        ("policeClearance", "Has anyone who is to be included in this application applied for a Police Clearance Certificate in the last 12 months?"),
+        ("immigrationDetention", "Has anyone who is to be included in this application previously been in Immigration Detention, a Refugee Camp or Centre for Refugees?"),
         ("criminalConviction", "Has any applicant ever been convicted of an offence in any country (including any conviction which is now removed from official records)? If in doubt, click Yes."),
         ("pendingCharge", "Has any applicant ever been charged with any offence in any country that is currently awaiting legal action? If in doubt, click Yes."),
-        ("protectionOrder", "Has any applicant who is included in this application ever been the subject of a domestic violence or family violence order, or any other order of a tribunal or court or other similar authority, for the personal protection of another person?"),
+        ("protectionOrder", "Has any applicant who is included in this application ever been the subject of a domestic violence or family violence order, or any other order, of a tribunal or court or other similar authority, for the personal protection of another person?"),
         ("arrestWarrant", "Has any applicant who is to be included in this application been the subject of an arrest warrant or Interpol Notice?"),
         ("childSexualOffence", "Has any applicant been found guilty of a sexually based offence involving a child (including where no conviction was recorded)?"),
         ("sexOffenderRegister", "Has any applicant who is to be included in this application ever been named on a sex offender register?"),
@@ -21,7 +23,7 @@ public static class Graduate485NoForm80Questionnaire
         ("visaRefusal", "Has any applicant ever had a visa or entry permit for any country (including Australia) refused?"),
         ("visaOverstay", "Has any applicant overstayed a visa or entry permit in any country (including Australia)?"),
         ("deported", "Has any applicant been removed or deported from any country (including Australia)?"),
-        ("avoidedDeportation", "Has any applicant left any country to avoid being removed or deported from that Country (including Australia)?"),
+        ("avoidedDeportation", "Has any applicant left any country to avoid being removed or deported from that country (including Australia)?"),
         ("excludedFromCountry", "Has any applicant been excluded from or asked to leave any country (including Australia)?"),
         ("citizenshipRefused", "Has any applicant ever been refused, renounced or rescinded citizenship of any country?"),
         ("internationalCrimes", "Has any applicant been charged with, or indicted for: genocide, war crimes, crimes against humanity, torture, slavery, or any other crime that is otherwise of a serious international concern?"),
@@ -77,8 +79,17 @@ public static class Graduate485NoForm80Questionnaire
             .Where(question => question.Key is not "healthConditions" and not "healthConditionsDetails")
             .ToList();
         var tuberculosisIndex = questions.FindIndex(question => question.Key == "tuberculosis");
-        questions.InsertRange(tuberculosisIndex, HealthConditions.Select(condition =>
-            new FormQuestion(condition.Key, condition.Label, FormQuestionType.Checkbox)));
+        questions.InsertRange(tuberculosisIndex, HealthConditions.SelectMany(condition =>
+            new[]
+            {
+                new FormQuestion(condition.Key, condition.Label, FormQuestionType.YesNo),
+                new FormQuestion(
+                    condition.Key + "Details",
+                    "If yes, provide details.",
+                    FormQuestionType.LongText,
+                    DependsOnKey: condition.Key,
+                    DependsOnValue: "Yes")
+            }));
 
         return section with
         {

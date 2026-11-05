@@ -11,6 +11,7 @@ public enum FormQuestionType
     DecimalNumber,
     Email,
     YesNo,
+    RadioYesNo,
     Checkbox,
     Select
 }
@@ -34,26 +35,35 @@ public sealed record FormQuestionnaireSection(
 public static class FormQuestionnaire
 {
     public const int CurrentVersion = 1;
+    internal static readonly IReadOnlyList<string> TitleOptions =
+        ["Mr", "Mrs", "Ms", "Miss", "Mx", "Dr", "Other"];
+    internal static readonly IReadOnlyList<string> GenderOptions =
+        ["Male", "Female", "Other", "Prefer not to say"];
+    internal static readonly IReadOnlyList<string> MaritalStatusOptions =
+        ["Married", "Unmarried", "De facto", "Engaged", "Separated", "Divorced", "Widowed"];
     internal static readonly IReadOnlyList<string> CountryOptions = GetCountryOptions();
 
     public static IReadOnlyList<FormQuestionnaireSection> Sections { get; } =
     [
         Section(1, "Preparer and applicant personal details", false,
-            Y("mainApplicant", "Are you or will you be the main applicant in any application?"),
+            new FormQuestion(
+                "mainApplicant",
+                "Are you or will you be the main applicant in any application?",
+                FormQuestionType.RadioYesNo),
             new FormQuestion("applicantTitle", "Prefix or title", FormQuestionType.Select,
-                Options: ["Mr", "Mrs", "Ms", "Miss", "Mx", "Dr", "Other"]),
+                Options: TitleOptions),
             Q("applicantFamilyName", "Family name"),
             Q("applicantGivenNames", "Given names"),
             Q("applicantPreferredNames", "Preferred names"),
             new FormQuestion("applicantGender", "Gender", FormQuestionType.Select,
-                Options: ["Male", "Female", "Other", "Prefer not to say"]),
+                Options: GenderOptions),
             D("applicantDateOfBirth", "Date of birth"),
             new FormQuestion("applicantCountryOfBirth", "Country of birth", FormQuestionType.Select,
                 Options: CountryOptions),
             Q("applicantCityOfBirth", "City or town of birth"),
             Q("applicantStateOfBirth", "State or province of birth"),
             new FormQuestion("applicantMaritalStatus", "What is your marital status?", FormQuestionType.Select,
-                Options: ["Married", "Unmarried", "De facto", "Engaged", "Separated", "Divorced", "Widowed"]),
+                Options: MaritalStatusOptions),
             Y("applicantOtherNames", "Have you ever had or been known by any other name or alias, or had a different name spelling?"),
             new FormQuestion(
                 "applicantOtherNamesDetails",
@@ -228,7 +238,7 @@ public static class FormQuestionnaire
         Section(5, "Spouse or partner personal details", false,
             Y("hasSpouseOrPartner", "Are you currently married or in a de facto relationship?"),
             new FormQuestion("partnerTitle", "Prefix or title", FormQuestionType.Select,
-                Options: ["Mr", "Mrs", "Ms", "Miss", "Mx", "Dr", "Other"],
+                Options: TitleOptions,
                 DependsOnKey: "hasSpouseOrPartner", DependsOnValue: "Yes"),
             new FormQuestion("partnerFamilyName", "Family name", FormQuestionType.Text,
                 DependsOnKey: "hasSpouseOrPartner", DependsOnValue: "Yes"),

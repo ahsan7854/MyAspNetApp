@@ -132,19 +132,17 @@ public sealed class FormController(
                             question.Label,
                             answers[question.Key + suffix],
                             question.GroupTitle))
-                        .Concat(section.Number == 10
-                            ? section.Questions
-                                .Where(question => question.AllowMultipleAnswers)
-                                .SelectMany(question => answers.Keys
-                                    .Where(key => key == question.Key ||
-                                        key.StartsWith(question.Key + "__", StringComparison.Ordinal))
-                                    .Select(key => (Question: question, Key: key, RecordNumber: GetRecordNumber(key)))
-                                    .OrderBy(item => item.RecordNumber)
-                                    .Select(item => new QuestionnaireAnswerViewModel(
-                                        $"Travel record {item.RecordNumber} - {item.Question.Label}",
-                                        answers[item.Key],
-                                        item.Question.GroupTitle)))
-                            : [])
+                        .Concat(section.Questions
+                            .Where(question => question.AllowMultipleAnswers)
+                            .SelectMany(question => answers.Keys
+                                .Where(key => key == question.Key ||
+                                    key.StartsWith(question.Key + "__", StringComparison.Ordinal))
+                                .Select(key => (Question: question, Key: key, RecordNumber: GetRecordNumber(key)))
+                                .OrderBy(item => item.RecordNumber)
+                                .Select(item => new QuestionnaireAnswerViewModel(
+                                    $"{(item.Question.Key.StartsWith("child", StringComparison.Ordinal) ? "Child" : "Travel record")} {item.RecordNumber} - {item.Question.Label}",
+                                    answers[item.Key],
+                                    item.Question.GroupTitle))))
                         .ToArray();
                     return new QuestionnaireSectionViewModel(
                         section.Number,
@@ -334,7 +332,7 @@ public sealed class FormController(
 
         return question.Type switch
         {
-            FormQuestionType.YesNo or FormQuestionType.Checkbox =>
+            FormQuestionType.YesNo or FormQuestionType.RadioYesNo or FormQuestionType.Checkbox =>
                 value is "Yes" or "No",
             FormQuestionType.Email =>
                 System.Net.Mail.MailAddress.TryCreate(value, out _),
