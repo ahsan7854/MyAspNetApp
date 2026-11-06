@@ -7,12 +7,15 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
         "The 'DefaultConnection' connection string is not configured.");
+var cookieSecurePolicy = builder.Environment.IsDevelopment()
+    ? CookieSecurePolicy.SameAsRequest
+    : CookieSecurePolicy.Always;
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddAntiforgery(options =>
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always);
+    options.Cookie.SecurePolicy = cookieSecurePolicy);
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
@@ -33,7 +36,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SecurePolicy = cookieSecurePolicy;
     options.SlidingExpiration = true;
 });
 
